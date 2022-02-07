@@ -2,7 +2,6 @@ variables:
   BuildVersion: $[counter('release-counter', 1)]
   IsRunningOnCI: true
   DotNet.Cli.Telemetry.OptOut: true
-  provisioningVS: true
   provisionator.path: '$(System.DefaultWorkingDirectory)/eng/provisioning/provisioning.csx'
   provisionator.vs: '$(System.DefaultWorkingDirectory)/eng/provisioning/vs.csx'
   provisionator.extraArguments: '--v'
@@ -102,8 +101,8 @@ stages:
                 & dotnet vs where --prop=InstallationPath
               displayName: list vs installs
 
-            - pwsh: echo "##vso[task.setvariable variable=JAVA_HOME]$(JAVA_HOME_11_X64)"
-              displayName: Select JDK 11
+            # - pwsh: echo "##vso[task.setvariable variable=JAVA_HOME]$(JAVA_HOME_11_X64)"
+            #   displayName: Select JDK 11
 
             - pwsh: |
                 [xml] $fileXml = Get-Content "eng\Versions.props"
@@ -129,7 +128,7 @@ stages:
             - pwsh: |
                 Invoke-WebRequest 'https://raw.githubusercontent.com/Samsung/Tizen.NET/main/workload/scripts/workload-install.ps1' -OutFile 'workload-install.ps1'
                 .\workload-install.ps1
-              displayName: install tizen
+              displayName: install tizen workload
 
             - pwsh: |
                 $uri = 'https://go.microsoft.com/fwlink/?linkid=2083338'
