@@ -74,7 +74,8 @@ stages:
           displayName: Build Windows Phase (${{ BuildConfiguration }})
           timeoutInMinutes: 60
           pool:
-            vmImage: windows-2022
+            name: $(windowsNet6VmPool)
+            vmImage: $(windowsNet6VmImage)
           steps:
 
             - template: /eng/pipelines/common/provision.yml
