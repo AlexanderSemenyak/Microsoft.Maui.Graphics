@@ -50,7 +50,7 @@ namespace Microsoft.Maui.Graphics.SharpDX
 		private Vector2 _point1;
 		private Vector2 _point2;
 		private float _radius;
-		private RectangleF _fillRectangle;
+		private RectF _fillRectangle;
 		private Size2F _size;
 		private global::SharpDX.RectangleF _rect;
 		private RenderTarget _renderTarget;
@@ -264,7 +264,7 @@ namespace Microsoft.Maui.Graphics.SharpDX
 				endAngle += 360;
 			}
 
-			var rotation = Geometry.GetSweep(startAngle, endAngle, clockwise);
+			var rotation = GeometryUtil.GetSweep(startAngle, endAngle, clockwise);
 			var absRotation = Math.Abs(rotation);
 
 			float strokeWidth = CurrentState.StrokeSize;
@@ -275,8 +275,8 @@ namespace Microsoft.Maui.Graphics.SharpDX
 			_size.Width = _rect.Width / 2;
 			_size.Height = _rect.Height / 2;
 
-			var startPoint = Geometry.EllipseAngleToPoint(_rect.X, _rect.Y, _rect.Width, _rect.Height, -startAngle);
-			var endPoint = Geometry.EllipseAngleToPoint(_rect.X, _rect.Y, _rect.Width, _rect.Height, -endAngle);
+			var startPoint = GeometryUtil.EllipseAngleToPoint(_rect.X, _rect.Y, _rect.Width, _rect.Height, -startAngle);
+			var endPoint = GeometryUtil.EllipseAngleToPoint(_rect.X, _rect.Y, _rect.Width, _rect.Height, -endAngle);
 
 			_point1.X = startPoint.X;
 			_point1.Y = startPoint.Y;
@@ -317,14 +317,14 @@ namespace Microsoft.Maui.Graphics.SharpDX
 				endAngle += 360;
 			}
 
-			var rotation = Geometry.GetSweep(startAngle, endAngle, clockwise);
+			var rotation = GeometryUtil.GetSweep(startAngle, endAngle, clockwise);
 			var absRotation = Math.Abs(rotation);
 
 			_size.Width = width / 2;
 			_size.Height = height / 2;
 
-			var startPoint = Geometry.EllipseAngleToPoint(x, y, width, height, -startAngle);
-			var endPoint = Geometry.EllipseAngleToPoint(x, y, width, height, -endAngle);
+			var startPoint = GeometryUtil.EllipseAngleToPoint(x, y, width, height, -startAngle);
+			var endPoint = GeometryUtil.EllipseAngleToPoint(x, y, width, height, -endAngle);
 
 			_point1.X = startPoint.X;
 			_point1.Y = startPoint.Y;
@@ -787,9 +787,9 @@ namespace Microsoft.Maui.Graphics.SharpDX
 			CurrentState.SetShadow(offset, blur, color);
 		}
 
-		protected override void PlatformSetStrokeDashPattern(float[] pattern, float strokeSize)
+		protected override void PlatformSetStrokeDashPattern(float[] strokePattern, float strokeDashOffset, float strokeSize)
 		{
-			CurrentState.SetStrokeDashPattern(pattern, strokeSize);
+			CurrentState.SetStrokeDashPattern(strokePattern, strokeDashOffset, strokeSize);
 		}
 
 		protected override float PlatformStrokeSize
@@ -797,7 +797,7 @@ namespace Microsoft.Maui.Graphics.SharpDX
 			set { }
 		}
 
-		public override void SetFillPaint(Paint paint, RectangleF rectangle)
+		public override void SetFillPaint(Paint paint, RectF rectangle)
 		{
 			if (paint == null)
 			{

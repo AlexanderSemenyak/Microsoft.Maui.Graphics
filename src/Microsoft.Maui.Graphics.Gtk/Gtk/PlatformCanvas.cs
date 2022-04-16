@@ -107,9 +107,9 @@ namespace Microsoft.Maui.Graphics.Platform.Gtk
 			set => CurrentState.BlendMode = value;
 		}
 
-		protected override void PlatformSetStrokeDashPattern(float[] pattern, float strokeSize)
+		protected override void PlatformSetStrokeDashPattern(float[] strokePattern, float strokeDashOffset, float strokeSize)
 		{
-			CurrentState.StrokeDashPattern = pattern;
+			CurrentState.StrokeDashPattern = strokePattern;
 		}
 
 		private void Draw(bool preserve = false)
@@ -219,7 +219,7 @@ namespace Microsoft.Maui.Graphics.Platform.Gtk
 			CurrentState.Shadow = (offset, blur, color);
 		}
 
-		public override void SetFillPaint(Paint paint, RectangleF rectangle)
+		public override void SetFillPaint(Paint paint, RectF rectangle)
 		{
 			CurrentState.FillPaint = (paint, rectangle);
 		}

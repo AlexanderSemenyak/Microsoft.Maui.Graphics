@@ -169,7 +169,7 @@ namespace Microsoft.Maui.Graphics.GDI
 				endAngle += 360;
 			}
 
-			float sweep = Geometry.GetSweep(startAngle, endAngle, clockwise);
+			float sweep = GeometryUtil.GetSweep(startAngle, endAngle, clockwise);
 			SetRect(x, y, width, height);
 			if (!clockwise)
 			{
@@ -212,7 +212,7 @@ namespace Microsoft.Maui.Graphics.GDI
 				endAngle += 360;
 			}
 
-			float sweep = Geometry.GetSweep(startAngle, endAngle, clockwise);
+			float sweep = GeometryUtil.GetSweep(startAngle, endAngle, clockwise);
 			SetRect(x, y, width, height);
 			if (!clockwise)
 			{
@@ -480,11 +480,11 @@ namespace Microsoft.Maui.Graphics.GDI
 			set => CurrentState.StrokeWidth = value;
 		}
 
-		protected override void PlatformSetStrokeDashPattern(float[] pattern, float strokeSize)
+		protected override void PlatformSetStrokeDashPattern(float[] strokePattern, float strokeDashOffset, float strokeSize)
 		{
 		}
 
-		public override void SetFillPaint(Paint paint, RectangleF rectangle)
+		public override void SetFillPaint(Paint paint, RectF rectangle)
 		{
 			if (paint == null)
 			{

@@ -1,5 +1,4 @@
 using System.Numerics;
-
 using Microsoft.Maui.Graphics.Text;
 
 namespace Microsoft.Maui.Graphics
@@ -15,6 +14,7 @@ namespace Microsoft.Maui.Graphics
 		public  LineCap StrokeLineCap { set; }
 		public  LineJoin StrokeLineJoin { set; }
 		public  float[] StrokeDashPattern { set; }
+		public float StrokeDashOffset { set; }
 		public  Color FillColor { set; }
 		public  Color FontColor { set; }
 		public IFont Font { set; }
@@ -26,6 +26,7 @@ namespace Microsoft.Maui.Graphics
 		public  void DrawPath(PathF path);
 
 		public  void FillPath(PathF path, WindingMode windingMode);
+
 		public  void SubtractFromClip(float x, float y, float width, float height);
 
 		public  void ClipPath(PathF path, WindingMode windingMode = WindingMode.NonZero);
@@ -88,7 +89,7 @@ namespace Microsoft.Maui.Graphics
 
 		public  void SetShadow(SizeF offset, float blur, Color color);
 
-		public  void SetFillPaint(Paint paint, RectangleF rectangle);
+		public  void SetFillPaint(Paint paint, RectF rectangle);
 
 		public  void DrawImage(IImage image, float x, float y, float width, float height);
 

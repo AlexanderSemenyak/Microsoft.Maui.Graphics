@@ -199,12 +199,12 @@ namespace Microsoft.Maui.Graphics.Platform
 			}
 		}
 
-		protected override void PlatformSetStrokeDashPattern(float[] patter, float linewidth)
+		protected override void PlatformSetStrokeDashPattern(float[] strokePattern, float strokeDashOffset, float strokeSize)
 		{
-			CurrentState.SetStrokeDashPattern(patter, linewidth);
+			CurrentState.SetStrokeDashPattern(strokePattern, strokeDashOffset, strokeSize);
 		}
 
-		public override void SetFillPaint(Paint paint, RectangleF rectangle)
+		public override void SetFillPaint(Paint paint, RectF rectangle)
 		{
 			if (paint == null)
 				paint = Colors.White.AsPaint();
@@ -225,7 +225,7 @@ namespace Microsoft.Maui.Graphics.Platform
 				var colors = new int[linearGradientPaint.GradientStops.Length];
 				var stops = new float[colors.Length];
 
-				GradientStop[] vStops = linearGradientPaint.GetSortedStops();
+				PaintGradientStop[] vStops = linearGradientPaint.GetSortedStops();
 
 				for (int i = 0; i < vStops.Length; i++)
 				{
@@ -257,7 +257,7 @@ namespace Microsoft.Maui.Graphics.Platform
 				var colors = new int[radialGradientPaint.GradientStops.Length];
 				var stops = new float[colors.Length];
 
-				GradientStop[] vStops = radialGradientPaint.GetSortedStops();
+				PaintGradientStop[] vStops = radialGradientPaint.GetSortedStops();
 
 				for (int i = 0; i < vStops.Length; i++)
 				{
@@ -270,7 +270,7 @@ namespace Microsoft.Maui.Graphics.Platform
 				float radius = (float)radialGradientPaint.Radius * Math.Max(rectangle.Height, rectangle.Width);
 
 				if (radius == 0)
-					radius = Geometry.GetDistance(rectangle.Left, rectangle.Top, rectangle.Right, rectangle.Bottom);
+					radius = GeometryUtil.GetDistance(rectangle.Left, rectangle.Top, rectangle.Right, rectangle.Bottom);
 
 				try
 				{
@@ -389,9 +389,9 @@ namespace Microsoft.Maui.Graphics.Platform
 			var rectWidth = width;
 			var rectHeight = height;
 
-			float sweep = Geometry.GetSweep(startAngle, endAngle, clockwise);
+			float sweep = GeometryUtil.GetSweep(startAngle, endAngle, clockwise);
 
-			var rect = new RectF(rectX, rectY, rectX + rectWidth, rectY + rectHeight);
+			var rect = new global::Android.Graphics.RectF(rectX, rectY, rectX + rectWidth, rectY + rectHeight);
 
 			startAngle *= -1;
 			if (!clockwise)
@@ -434,8 +434,8 @@ namespace Microsoft.Maui.Graphics.Platform
 				endAngle += 360;
 			}
 
-			var sweep = Geometry.GetSweep(startAngle, endAngle, clockwise);
-			var rect = new RectF(x, y, x + width, y + height);
+			var sweep = GeometryUtil.GetSweep(startAngle, endAngle, clockwise);
+			var rect = new global::Android.Graphics.RectF(x, y, x + width, y + height);
 
 			startAngle *= -1;
 			if (!clockwise)
@@ -489,7 +489,7 @@ namespace Microsoft.Maui.Graphics.Platform
 			var rectHeight = height;
 			var radius = aCornerRadius;
 
-			var rect = new RectF(rectX, rectY, rectX + rectWidth, rectY + rectHeight);
+			var rect = new global::Android.Graphics.RectF(rectX, rectY, rectX + rectWidth, rectY + rectHeight);
 			_canvas.DrawRoundRect(rect, radius, radius, CurrentState.StrokePaintWithAlpha);
 			rect.Dispose();
 		}
@@ -502,7 +502,7 @@ namespace Microsoft.Maui.Graphics.Platform
 			var rectHeight = height;
 			var radius = aCornerRadius;
 
-			var rect = new RectF(rectX, rectY, rectX + rectWidth, rectY + rectHeight);
+			var rect = new global::Android.Graphics.RectF(rectX, rectY, rectX + rectWidth, rectY + rectHeight);
 			_canvas.DrawRoundRect(rect, radius, radius, CurrentState.FillPaintWithAlpha);
 			rect.Dispose();
 		}
@@ -517,7 +517,7 @@ namespace Microsoft.Maui.Graphics.Platform
 			var rectWidth = width;
 			var rectHeight = height;
 
-			var rect = new RectF(rectX, rectY, rectX + rectWidth, rectY + rectHeight);
+			var rect = new global::Android.Graphics.RectF(rectX, rectY, rectX + rectWidth, rectY + rectHeight);
 			_canvas.DrawOval(rect, CurrentState.StrokePaintWithAlpha);
 			rect.Dispose();
 		}
@@ -532,7 +532,7 @@ namespace Microsoft.Maui.Graphics.Platform
 			var rectWidth = width;
 			var rectHeight = height;
 
-			var rect = new RectF(rectX, rectY, rectX + rectWidth, rectY + rectHeight);
+			var rect = new global::Android.Graphics.RectF(rectX, rectY, rectX + rectWidth, rectY + rectHeight);
 			_canvas.DrawOval(rect, CurrentState.FillPaintWithAlpha);
 			rect.Dispose();
 		}
@@ -759,7 +759,7 @@ namespace Microsoft.Maui.Graphics.Platform
 
 					_canvas.Save();
 					//canvas.Scale (scaleX, scaleY);
-					var srcRect = new Rect(0, 0, bitmap.Width, bitmap.Height);
+					var srcRect = new global::Android.Graphics.Rect(0, 0, bitmap.Width, bitmap.Height);
 
 					x *= scaleX;
 					y *= scaleY;
@@ -771,7 +771,7 @@ namespace Microsoft.Maui.Graphics.Platform
 					var rx2 = Math.Max(x, x + width);
 					var ry2 = Math.Max(y, y + height);
 
-					var destRect = new RectF(rx1, ry1, rx2, ry2);
+					var destRect = new global::Android.Graphics.RectF(rx1, ry1, rx2, ry2);
 					var paint = CurrentState.GetImagePaint(1, 1);
 					_canvas.DrawBitmap(bitmap, srcRect, destRect, paint);
 					paint?.Dispose();

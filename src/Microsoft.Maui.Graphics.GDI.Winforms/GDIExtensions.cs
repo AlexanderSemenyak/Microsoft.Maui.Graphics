@@ -7,19 +7,19 @@ namespace Microsoft.Maui.Graphics.GDI
 {
 	public static class GDIGraphicsExtensions
 	{
-		public static Drawing.RectangleF AsRectangleF(this RectangleF target)
+		public static Drawing.RectangleF AsRectangleF(this RectF target)
 		{
 			return new Drawing.RectangleF(target.Left, target.Top, Math.Abs(target.Width), Math.Abs(target.Height));
 		}
 
-		public static RectangleF AsRectangleF(this Drawing.RectangleF target)
+		public static RectF AsRectangleF(this Drawing.RectangleF target)
 		{
-			return new RectangleF(target.Left, target.Top, Math.Abs(target.Width), Math.Abs(target.Height));
+			return new RectF(target.Left, target.Top, Math.Abs(target.Width), Math.Abs(target.Height));
 		}
 
-		public static RectangleF AsRectangleF(this global::System.Drawing.Rectangle target)
+		public static RectF AsRectangleF(this global::System.Drawing.Rectangle target)
 		{
-			return new RectangleF(target.Left, target.Top, Math.Abs(target.Width), Math.Abs(target.Height));
+			return new RectF(target.Left, target.Top, Math.Abs(target.Width), Math.Abs(target.Height));
 		}
 
 		public static Drawing.SizeF AsSizeF(this SizeF target)
@@ -155,7 +155,7 @@ namespace Microsoft.Maui.Graphics.GDI
 						var width = (bottomRight.X - topLeft.X) * ppux;
 						var height = (bottomRight.Y - topLeft.Y) * ppuy;
 
-						float sweep = Geometry.GetSweep(startAngle, endAngle, clockwise);
+						float sweep = GeometryUtil.GetSweep(startAngle, endAngle, clockwise);
 						if (!clockwise)
 						{
 							startAngle = endAngle;

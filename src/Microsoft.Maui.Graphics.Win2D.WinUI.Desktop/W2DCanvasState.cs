@@ -3,7 +3,7 @@ using Microsoft.Graphics.Canvas.Brushes;
 using Microsoft.Graphics.Canvas.Geometry;
 using System;
 using System.Numerics;
-using Windows.Foundation;
+using WRect = Windows.Foundation.Rect;
 #if NETFX_CORE
 using WColors = global::Windows.UI.Colors;
 #else
@@ -21,6 +21,7 @@ namespace Microsoft.Maui.Graphics.Win2D
 
 		private float _alpha = 1;
 		private float[] _dashes;
+		private float _dashOffset;
 
 		private ICanvasBrush _fillBrush;
 		private bool _fillBrushValid;
@@ -97,6 +98,7 @@ namespace Microsoft.Maui.Graphics.Win2D
 			_shadowColorValid = prototype._shadowColorValid;
 
 			_dashes = prototype._dashes;
+			_dashOffset = prototype._dashOffset;
 			_strokeStyle = prototype._strokeStyle;
 			_lineJoin = prototype._lineJoin;
 			_lineCap = prototype._lineCap;
@@ -127,6 +129,7 @@ namespace Microsoft.Maui.Graphics.Win2D
 			_strokeStyle = null;
 
 			_dashes = null;
+			_dashOffset = 1;	
 			_miterLimit = CanvasDefaults.DefaultMiterLimit;
 			_lineCap = CanvasCapStyle.Flat;
 			_lineJoin = CanvasLineJoin.Miter;
@@ -242,7 +245,7 @@ namespace Microsoft.Maui.Graphics.Win2D
 			}
 		}
 
-		public void SetStrokeDashPattern(float[] pattern, float strokeSize)
+		public void SetStrokeDashPattern(float[] pattern, float strokeDashOffset, float strokeSize)
 		{
 			if (pattern == null || pattern.Length == 0)
 			{
@@ -253,6 +256,8 @@ namespace Microsoft.Maui.Graphics.Win2D
 			{
 				_dashes = pattern;
 			}
+
+			_dashOffset = strokeDashOffset;
 
 			InvalidateStrokeStyle();
 			_needsStrokeStyle = true;
@@ -326,7 +331,7 @@ namespace Microsoft.Maui.Graphics.Win2D
 						}
 						else if (_sourceFillpaint is RadialGradientPaint radialGradientPaint)
 						{
-							//float radius = Geometry.GetDistance(_gradientPoint1.X, _gradientPoint1.Y, _gradientPoint2.X, _gradientPoint2.Y);
+							//float radius = GeometryUtil.GetDistance(_gradientPoint1.X, _gradientPoint1.Y, _gradientPoint2.X, _gradientPoint2.Y);
 
 							var gradientStops = new CanvasGradientStop[radialGradientPaint.GradientStops.Length];
 							for (int i = 0; i < radialGradientPaint.GradientStops.Length; i++)
@@ -437,14 +442,14 @@ namespace Microsoft.Maui.Graphics.Win2D
 
 		public Matrix3x2 AppendRotate(float aAngle)
 		{
-			float radians = Geometry.DegreesToRadians(aAngle);
+			float radians = GeometryUtil.DegreesToRadians(aAngle);
 			Matrix = Matrix.Rotate(radians);
 			return Matrix;
 		}
 
 		public Matrix3x2 AppendRotate(float aAngle, float x, float y)
 		{
-			float radians = Geometry.DegreesToRadians(aAngle);
+			float radians = GeometryUtil.DegreesToRadians(aAngle);
 			Matrix = Matrix.Translate(x, y);
 			Matrix = Matrix.Rotate(radians);
 			Matrix = Matrix.Translate(-x, -y);
@@ -456,7 +461,14 @@ namespace Microsoft.Maui.Graphics.Win2D
 			if (_layerMask != null)
 				throw new Exception("Only one clip operation currently supported.");
 
+
+/* Unmerged change from project 'Microsoft.Maui.Graphics.Win2D.WinUI.Desktop'
+Before:
 			var layerRect = new Rect(0, 0, _owner.CanvasSize.Width, _owner.CanvasSize.Height);
+After:
+			var layerRect = new global::Windows.Foundation.Rect(0, 0, _owner.CanvasSize.Width, _owner.CanvasSize.Height);
+*/
+			var layerRect = new WRect(0, 0, _owner.CanvasSize.Width, _owner.CanvasSize.Height);
 			_layerBounds = CanvasGeometry.CreateRectangle(_owner.Session, layerRect);
 			var clipGeometry = path.AsPath(_owner.Session, windingMode == WindingMode.NonZero ? CanvasFilledRegionDetermination.Winding : CanvasFilledRegionDetermination.Alternate);
 
@@ -478,10 +490,24 @@ namespace Microsoft.Maui.Graphics.Win2D
 			if (_layerMask != null)
 				throw new Exception("Only one subtraction currently supported.");
 
+
+/* Unmerged change from project 'Microsoft.Maui.Graphics.Win2D.WinUI.Desktop'
+Before:
 			var layerRect = new Rect(0, 0, _owner.CanvasSize.Width, _owner.CanvasSize.Height);
+After:
+			var layerRect = new global::Windows.Foundation.Rect(0, 0, _owner.CanvasSize.Width, _owner.CanvasSize.Height);
+*/
+			var layerRect = new WRect(0, 0, _owner.CanvasSize.Width, _owner.CanvasSize.Height);
 			_layerBounds = CanvasGeometry.CreateRectangle(_owner.Session, layerRect);
 
+
+/* Unmerged change from project 'Microsoft.Maui.Graphics.Win2D.WinUI.Desktop'
+Before:
 			var boundsToSubtract = new Rect(x, y, width, height);
+After:
+			var boundsToSubtract = new global::Windows.Foundation.Rect(x, y, width, height);
+*/
+			var boundsToSubtract = new WRect(x, y, width, height);
 			_layerClipBounds = CanvasGeometry.CreateRectangle(_owner.Session, boundsToSubtract);
 
 			_layerMask = _layerBounds.CombineWith(_layerClipBounds, Matrix3x2.Identity, CanvasGeometryCombine.Exclude);
@@ -553,6 +579,7 @@ namespace Microsoft.Maui.Graphics.Win2D
 						_strokeStyle.CustomDashStyle = _emptyFloatArray;
 					}
 
+					_strokeStyle.DashOffset = _dashOffset;
 					_strokeStyle.MiterLimit = _miterLimit;
 					_strokeStyle.StartCap = _lineCap;
 					_strokeStyle.EndCap = _lineCap;

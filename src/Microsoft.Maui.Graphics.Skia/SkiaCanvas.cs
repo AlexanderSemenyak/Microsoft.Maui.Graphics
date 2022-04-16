@@ -215,13 +215,14 @@ namespace Microsoft.Maui.Graphics.Skia
 		}
 
 		protected override void PlatformSetStrokeDashPattern(
-			float[] pattern,
+			float[] strokePattern,
+			float strokeDashOffset,
 			float strokeSize)
 		{
-			CurrentState.SetStrokeDashPattern(pattern, strokeSize);
+			CurrentState.SetStrokeDashPattern(strokePattern, strokeDashOffset, strokeSize);
 		}
 
-		public override void SetFillPaint(Paint paint, RectangleF rectangle)
+		public override void SetFillPaint(Paint paint, RectF rectangle)
 		{
 			if (paint == null)
 				paint = Colors.White.AsPaint();
@@ -291,7 +292,7 @@ namespace Microsoft.Maui.Graphics.Skia
 				float radius = (float)radialGradientPaint.Radius * Math.Max(rectangle.Height, rectangle.Width);
 
 				if (radius == 0)
-					radius = Geometry.GetDistance(rectangle.Left, rectangle.Top, rectangle.Right, rectangle.Bottom);
+					radius = GeometryUtil.GetDistance(rectangle.Left, rectangle.Top, rectangle.Right, rectangle.Bottom);
 
 				try
 				{
@@ -413,7 +414,7 @@ namespace Microsoft.Maui.Graphics.Skia
 			var rectWidth = width;
 			var rectHeight = height;
 
-			var sweep = Geometry.GetSweep(startAngle, endAngle, clockwise);
+			var sweep = GeometryUtil.GetSweep(startAngle, endAngle, clockwise);
 
 			var rect = new SKRect(rectX, rectY, rectX + rectWidth, rectY + rectHeight);
 
@@ -457,7 +458,7 @@ namespace Microsoft.Maui.Graphics.Skia
 			while (endAngle < 0)
 				endAngle += 360;
 
-			var sweep = Geometry.GetSweep(startAngle, endAngle, clockwise);
+			var sweep = GeometryUtil.GetSweep(startAngle, endAngle, clockwise);
 			var rect = new SKRect(x, y, x + width, y + height);
 
 			startAngle *= -1;
@@ -656,7 +657,7 @@ namespace Microsoft.Maui.Graphics.Skia
 			if (string.IsNullOrEmpty(value))
 				return;
 
-			var rect = new RectangleF(x, y, width, height);
+			var rect = new RectF(x, y, width, height);
 
 			var attributes = new StandardTextAttributes()
 			{

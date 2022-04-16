@@ -1,8 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using System.Numerics;
 
 namespace Microsoft.Maui.Graphics
@@ -156,7 +156,7 @@ namespace Microsoft.Maui.Graphics
 
 		public Color WithAlpha(float alpha)
 		{
-			if (Math.Abs(alpha - Alpha) < Geometry.Epsilon)
+			if (Math.Abs(alpha - Alpha) < GeometryUtil.Epsilon)
 				return this;
 
 			return new Color(Red, Green, Blue, alpha);
@@ -337,91 +337,115 @@ namespace Microsoft.Maui.Graphics
 			return new Color((float)r, (float)g, (float)b, (float)a);
 		}
 
-		public static Color FromRgba(string colorAsHex)
-		{
-			//Remove # if present
-			if (colorAsHex.IndexOf('#') != -1)
-				colorAsHex = colorAsHex.Replace("#", "");
+		public static Color FromRgba(string colorAsHex) => FromRgba(colorAsHex != null ? colorAsHex.AsSpan() : default);
 
+		static Color FromRgba(ReadOnlySpan<char> colorAsHex)
+		{
 			int red = 0;
 			int green = 0;
 			int blue = 0;
 			int alpha = 255;
 
-			if (colorAsHex.Length == 6)
+			if (!colorAsHex.IsEmpty)
 			{
-				//#RRGGBB
-				red = int.Parse(colorAsHex.Substring(0, 2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-				green = int.Parse(colorAsHex.Substring(2, 2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-				blue = int.Parse(colorAsHex.Substring(4, 2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-			}
-			else if (colorAsHex.Length == 3)
-			{
-				//#RGB
-				red = int.Parse($"{colorAsHex[0]}{colorAsHex[0]}", NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-				green = int.Parse($"{colorAsHex[1]}{colorAsHex[1]}", NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-				blue = int.Parse($"{colorAsHex[2]}{colorAsHex[2]}", NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-			}
-			else if (colorAsHex.Length == 4)
-			{
-				//#RGBA
-				red = int.Parse($"{colorAsHex[0]}{colorAsHex[0]}", NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-				green = int.Parse($"{colorAsHex[1]}{colorAsHex[1]}", NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-				blue = int.Parse($"{colorAsHex[2]}{colorAsHex[2]}", NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-				alpha = int.Parse($"{colorAsHex[3]}{colorAsHex[3]}", NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-			}
-			else if (colorAsHex.Length == 8)
-			{
-				//#RRGGBBAA
-				red = int.Parse(colorAsHex.Substring(0, 2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-				green = int.Parse(colorAsHex.Substring(2, 2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-				blue = int.Parse(colorAsHex.Substring(4, 2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-				alpha = int.Parse(colorAsHex.Substring(6, 2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
+				//Skip # if present
+				if (colorAsHex[0] == '#')
+					colorAsHex = colorAsHex.Slice(1);
+
+				if (colorAsHex.Length == 6 || colorAsHex.Length == 3)
+				{
+					//#RRGGBB or #RGB - since there is no A, use FromArgb
+
+					return FromArgb(colorAsHex);
+				}
+				else if (colorAsHex.Length == 4)
+				{
+					//#RGBA
+					Span<char> temp = stackalloc char[2];
+					temp[0] = temp[1] = colorAsHex[0];
+					red = ParseInt(temp);
+
+					temp[0] = temp[1] = colorAsHex[1];
+					green = ParseInt(temp);
+
+					temp[0] = temp[1] = colorAsHex[2];
+					blue = ParseInt(temp);
+
+					temp[0] = temp[1] = colorAsHex[3];
+					alpha = ParseInt(temp);
+				}
+				else if (colorAsHex.Length == 8)
+				{
+					//#RRGGBBAA
+					red = ParseInt(colorAsHex.Slice(0, 2));
+					green = ParseInt(colorAsHex.Slice(2, 2));
+					blue = ParseInt(colorAsHex.Slice(4, 2));
+					alpha = ParseInt(colorAsHex.Slice(6, 2));
+				}
 			}
 
 			return FromRgba(red / 255f, green / 255f, blue / 255f, alpha / 255f);
 		}
 
-		public static Color FromArgb(string colorAsHex)
-		{
-			//Remove # if present
-			if (colorAsHex.IndexOf('#') != -1)
-				colorAsHex = colorAsHex.Replace("#", "");
+		public static Color FromArgb(string colorAsHex) => FromArgb(colorAsHex != null ? colorAsHex.AsSpan() : default);
 
+		static Color FromArgb(ReadOnlySpan<char> colorAsHex)
+		{
 			int red = 0;
 			int green = 0;
 			int blue = 0;
 			int alpha = 255;
 
-			if (colorAsHex.Length == 6)
+			if (!colorAsHex.IsEmpty)
 			{
-				//#RRGGBB
-				red = int.Parse(colorAsHex.Substring(0, 2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-				green = int.Parse(colorAsHex.Substring(2, 2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-				blue = int.Parse(colorAsHex.Substring(4, 2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-			}
-			else if (colorAsHex.Length == 3)
-			{
-				//#RGB
-				red = int.Parse($"{colorAsHex[0]}{colorAsHex[0]}", NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-				green = int.Parse($"{colorAsHex[1]}{colorAsHex[1]}", NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-				blue = int.Parse($"{colorAsHex[2]}{colorAsHex[2]}", NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-			}
-			else if (colorAsHex.Length == 4)
-			{
-				//#ARGB
-				alpha = int.Parse($"{colorAsHex[0]}{colorAsHex[0]}", NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-				red = int.Parse($"{colorAsHex[1]}{colorAsHex[1]}", NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-				green = int.Parse($"{colorAsHex[2]}{colorAsHex[2]}", NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-				blue = int.Parse($"{colorAsHex[3]}{colorAsHex[3]}", NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-			}
-			else if (colorAsHex.Length == 8)
-			{
-				//#AARRGGBB
-				alpha = int.Parse(colorAsHex.Substring(0, 2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-				red = int.Parse(colorAsHex.Substring(2, 2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-				green = int.Parse(colorAsHex.Substring(4, 2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-				blue = int.Parse(colorAsHex.Substring(6, 2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
+				//Skip # if present
+				if (colorAsHex[0] == '#')
+					colorAsHex = colorAsHex.Slice(1);
+
+				if (colorAsHex.Length == 6)
+				{
+					//#RRGGBB
+					red = ParseInt(colorAsHex.Slice(0, 2));
+					green = ParseInt(colorAsHex.Slice(2, 2));
+					blue = ParseInt(colorAsHex.Slice(4, 2));
+				}
+				else if (colorAsHex.Length == 3)
+				{
+					//#RGB
+					Span<char> temp = stackalloc char[2];
+					temp[0] = temp[1] = colorAsHex[0];
+					red = ParseInt(temp);
+
+					temp[0] = temp[1] = colorAsHex[1];
+					green = ParseInt(temp);
+
+					temp[0] = temp[1] = colorAsHex[2];
+					blue = ParseInt(temp);
+				}
+				else if (colorAsHex.Length == 4)
+				{
+					//#ARGB
+					Span<char> temp = stackalloc char[2];
+					temp[0] = temp[1] = colorAsHex[0];
+					alpha = ParseInt(temp);
+
+					temp[0] = temp[1] = colorAsHex[1];
+					red = ParseInt(temp);
+
+					temp[0] = temp[1] = colorAsHex[2];
+					green = ParseInt(temp);
+
+					temp[0] = temp[1] = colorAsHex[3];
+					blue = ParseInt(temp);
+				}
+				else if (colorAsHex.Length == 8)
+				{
+					//#AARRGGBB
+					alpha = ParseInt(colorAsHex.Slice(0, 2));
+					red = ParseInt(colorAsHex.Slice(2, 2));
+					green = ParseInt(colorAsHex.Slice(4, 2));
+					blue = ParseInt(colorAsHex.Slice(6, 2));
+				}
 			}
 
 			return FromRgba(red / 255f, green / 255f, blue / 255f, alpha / 255f);
@@ -565,12 +589,14 @@ namespace Microsoft.Maui.Graphics
 			throw new InvalidOperationException($"Cannot convert \"{value}\" into {typeof(Color)}");
 		}
 
-		public static bool TryParse(string value, out Color color)
+		public static bool TryParse(string value, out Color color) => TryParse(value != null ? value.AsSpan() : default, out color);
+
+		static bool TryParse(ReadOnlySpan<char> value, out Color color)
 		{
-			if (value != null)
+			value = value.Trim();
+			if (!value.IsEmpty)
 			{
-				value = value.Trim();
-				if (value.StartsWith("#", StringComparison.Ordinal))
+				if (value[0] == '#')
 				{
 					try
 					{
@@ -579,389 +605,444 @@ namespace Microsoft.Maui.Graphics
 					}
 					catch
 					{
-						color = default;
-						return false;
+						goto ReturnFalse;
 					}
 				}
 
-				if (value.StartsWith("rgba", StringComparison.OrdinalIgnoreCase))
+				if (value.StartsWith("rgba".AsSpan(), StringComparison.OrdinalIgnoreCase))
 				{
-					var op = value.IndexOf('(');
-					var cp = value.LastIndexOf(')');
-					if (op < 0 || cp < 0 || cp < op)
+					if (!TryParseFourColorRanges(value,
+						out ReadOnlySpan<char> quad0,
+						out ReadOnlySpan<char> quad1,
+						out ReadOnlySpan<char> quad2,
+						out ReadOnlySpan<char> quad3))
 					{
-						color = default;
-						return false;
+						goto ReturnFalse;
 					}
 
-					var quad = value.Substring(op + 1, cp - op - 1).Split(',');
-					if (quad.Length != 4)
-					{
-						color = default;
-						return false;
-					}
+					bool valid = TryParseColorValue(quad0, 255, acceptPercent: true, out double r);
+					valid &= TryParseColorValue(quad1, 255, acceptPercent: true, out double g);
+					valid &= TryParseColorValue(quad2, 255, acceptPercent: true, out double b);
+					valid &= TryParseOpacity(quad3, out double a);
 
-					var r = ParseColorValue(quad[0], 255, acceptPercent: true);
-					var g = ParseColorValue(quad[1], 255, acceptPercent: true);
-					var b = ParseColorValue(quad[2], 255, acceptPercent: true);
-					var a = ParseOpacity(quad[3]);
+					if (!valid)
+						goto ReturnFalse;
 
 					color = new Color((float)r, (float)g, (float)b, (float)a);
 					return true;
 				}
 
-				if (value.StartsWith("rgb", StringComparison.OrdinalIgnoreCase))
+				if (value.StartsWith("rgb".AsSpan(), StringComparison.OrdinalIgnoreCase))
 				{
-					var op = value.IndexOf('(');
-					var cp = value.LastIndexOf(')');
-
-					if (op < 0 || cp < 0 || cp < op)
+					if (!TryParseThreeColorRanges(value,
+						out ReadOnlySpan<char> triplet0,
+						out ReadOnlySpan<char> triplet1,
+						out ReadOnlySpan<char> triplet2))
 					{
-						color = default;
-						return false;
+						goto ReturnFalse;
 					}
 
-					var triplet = value.Substring(op + 1, cp - op - 1).Split(',');
-					if (triplet.Length != 3)
-					{
-						color = default;
-						return false;
-					}
+					bool valid = TryParseColorValue(triplet0, 255, acceptPercent: true, out double r);
+					valid &= TryParseColorValue(triplet1, 255, acceptPercent: true, out double g);
+					valid &= TryParseColorValue(triplet2, 255, acceptPercent: true, out double b);
 
-					var r = ParseColorValue(triplet[0], 255, acceptPercent: true);
-					var g = ParseColorValue(triplet[1], 255, acceptPercent: true);
-					var b = ParseColorValue(triplet[2], 255, acceptPercent: true);
+					if (!valid)
+						goto ReturnFalse;
 
 					color = new Color((float)r, (float)g, (float)b);
 					return true;
 				}
 
-				if (value.StartsWith("hsla", StringComparison.OrdinalIgnoreCase))
+				if (value.StartsWith("hsla".AsSpan(), StringComparison.OrdinalIgnoreCase))
 				{
-					var op = value.IndexOf('(');
-					var cp = value.LastIndexOf(')');
-					if (op < 0 || cp < 0 || cp < op)
+					if (!TryParseFourColorRanges(value,
+						out ReadOnlySpan<char> quad0,
+						out ReadOnlySpan<char> quad1,
+						out ReadOnlySpan<char> quad2,
+						out ReadOnlySpan<char> quad3))
 					{
-						color = default;
-						return false;
+						goto ReturnFalse;
 					}
 
-					var quad = value.Substring(op + 1, cp - op - 1).Split(',');
-					if (quad.Length != 4)
-					{
-						color = default;
-						return false;
-					}
+					bool valid = TryParseColorValue(quad0, 360, acceptPercent: false, out double h);
+					valid &= TryParseColorValue(quad1, 100, acceptPercent: true, out double s);
+					valid &= TryParseColorValue(quad2, 100, acceptPercent: true, out double l);
+					valid &= TryParseOpacity(quad3, out double a);
 
-					var h = ParseColorValue(quad[0], 360, acceptPercent: false);
-					var s = ParseColorValue(quad[1], 100, acceptPercent: true);
-					var l = ParseColorValue(quad[2], 100, acceptPercent: true);
-					var a = ParseOpacity(quad[3]);
+					if (!valid)
+						goto ReturnFalse;
 
 					color = Color.FromHsla(h, s, l, a);
 					return true;
 				}
 
-				if (value.StartsWith("hsl", StringComparison.OrdinalIgnoreCase))
+				if (value.StartsWith("hsl".AsSpan(), StringComparison.OrdinalIgnoreCase))
 				{
-					var op = value.IndexOf('(');
-					var cp = value.LastIndexOf(')');
-					if (op < 0 || cp < 0 || cp < op)
+					if (!TryParseThreeColorRanges(value,
+						out ReadOnlySpan<char> triplet0,
+						out ReadOnlySpan<char> triplet1,
+						out ReadOnlySpan<char> triplet2))
 					{
-						color = default;
-						return false;
+						goto ReturnFalse;
 					}
 
-					var triplet = value.Substring(op + 1, cp - op - 1).Split(',');
-					if (triplet.Length != 3)
-					{
-						color = default;
-						return false;
-					}
+					bool valid = TryParseColorValue(triplet0, 360, acceptPercent: false, out double h);
+					valid &= TryParseColorValue(triplet1, 100, acceptPercent: true, out double s);
+					valid &= TryParseColorValue(triplet2, 100, acceptPercent: true, out double l);
 
-					var h = ParseColorValue(triplet[0], 360, acceptPercent: false);
-					var s = ParseColorValue(triplet[1], 100, acceptPercent: true);
-					var l = ParseColorValue(triplet[2], 100, acceptPercent: true);
+					if (!valid)
+						goto ReturnFalse;
 
 					color = Color.FromHsla(h, s, l);
 					return true;
 				}
 
-				if (value.StartsWith("hsva", StringComparison.OrdinalIgnoreCase))
+				if (value.StartsWith("hsva".AsSpan(), StringComparison.OrdinalIgnoreCase))
 				{
-					var op = value.IndexOf('(');
-					var cp = value.LastIndexOf(')');
-					if (op < 0 || cp < 0 || cp < op)
+					if (!TryParseFourColorRanges(value,
+						out ReadOnlySpan<char> quad0,
+						out ReadOnlySpan<char> quad1,
+						out ReadOnlySpan<char> quad2,
+						out ReadOnlySpan<char> quad3))
 					{
-						color = default;
-						return false;
+						goto ReturnFalse;
 					}
 
-					var quad = value.Substring(op + 1, cp - op - 1).Split(',');
-					if (quad.Length != 4)
-					{
-						color = default;
-						return false;
-					}
+					bool valid = TryParseColorValue(quad0, 360, acceptPercent: false, out double h);
+					valid &= TryParseColorValue(quad1, 100, acceptPercent: true, out double s);
+					valid &= TryParseColorValue(quad2, 100, acceptPercent: true, out double v);
+					valid &= TryParseOpacity(quad3, out double a);
 
-					var h = ParseColorValue(quad[0], 360, acceptPercent: false);
-					var s = ParseColorValue(quad[1], 100, acceptPercent: true);
-					var v = ParseColorValue(quad[2], 100, acceptPercent: true);
-					var a = ParseOpacity(quad[3]);
+					if (!valid)
+						goto ReturnFalse;
 
 					color = Color.FromHsva((float)h, (float)s, (float)v, (float)a);
 					return true;
 				}
 
-				if (value.StartsWith("hsv", StringComparison.OrdinalIgnoreCase))
+				if (value.StartsWith("hsv".AsSpan(), StringComparison.OrdinalIgnoreCase))
 				{
-					var op = value.IndexOf('(');
-					var cp = value.LastIndexOf(')');
-					if (op < 0 || cp < 0 || cp < op)
+					if (!TryParseThreeColorRanges(value,
+						out ReadOnlySpan<char> triplet0,
+						out ReadOnlySpan<char> triplet1,
+						out ReadOnlySpan<char> triplet2))
 					{
-						color = default;
-						return false;
+						goto ReturnFalse;
 					}
 
-					var triplet = value.Substring(op + 1, cp - op - 1).Split(',');
-					if (triplet.Length != 3)
-					{
-						color = default;
-						return false;
-					}
+					bool valid = TryParseColorValue(triplet0, 360, acceptPercent: false, out double h);
+					valid &= TryParseColorValue(triplet1, 100, acceptPercent: true, out double s);
+					valid &= TryParseColorValue(triplet2, 100, acceptPercent: true, out double v);
 
-					var h = ParseColorValue(triplet[0], 360, acceptPercent: false);
-					var s = ParseColorValue(triplet[1], 100, acceptPercent: true);
-					var v = ParseColorValue(triplet[2], 100, acceptPercent: true);
+					if (!valid)
+						goto ReturnFalse;
 
 					color = Color.FromHsv((float)h, (float)s, (float)v);
 					return true;
 				}
 
-				string[] parts = value.Split('.');
-				if (parts.Length == 1 || (parts.Length == 2 && parts[0] == "Color"))
+				var namedColor = GetNamedColor(value);
+				if (namedColor != null)
 				{
-					string namedColorStr = parts[parts.Length - 1];
-
-					var namedColor = namedColorStr?.ToLowerInvariant() switch
-					{
-						"default" => default,
-						"aliceblue" => Colors.AliceBlue,
-						"antiquewhite" => Colors.AntiqueWhite,
-						"aqua" => Colors.Aqua,
-						"aquamarine" => Colors.Aquamarine,
-						"azure" => Colors.Azure,
-						"beige" => Colors.Beige,
-						"bisque" => Colors.Bisque,
-						"black" => Colors.Black,
-						"blanchedalmond" => Colors.BlanchedAlmond,
-						"blue" => Colors.Blue,
-						"blueViolet" => Colors.BlueViolet,
-						"brown" => Colors.Brown,
-						"burlywood" => Colors.BurlyWood,
-						"cadetblue" => Colors.CadetBlue,
-						"chartreuse" => Colors.Chartreuse,
-						"chocolate" => Colors.Chocolate,
-						"coral" => Colors.Coral,
-						"cornflowerblue" => Colors.CornflowerBlue,
-						"cornsilk" => Colors.Cornsilk,
-						"crimson" => Colors.Crimson,
-						"cyan" => Colors.Cyan,
-						"darkblue" => Colors.DarkBlue,
-						"darkcyan" => Colors.DarkCyan,
-						"darkgoldenrod" => Colors.DarkGoldenrod,
-						"darkgray" => Colors.DarkGray,
-						"darkgreen" => Colors.DarkGreen,
-						"darkkhaki" => Colors.DarkKhaki,
-						"darkmagenta" => Colors.DarkMagenta,
-						"darkolivegreen" => Colors.DarkOliveGreen,
-						"darkorange" => Colors.DarkOrange,
-						"darkorchid" => Colors.DarkOrchid,
-						"darkred" => Colors.DarkRed,
-						"darksalmon" => Colors.DarkSalmon,
-						"darkseagreen" => Colors.DarkSeaGreen,
-						"darkslateblue" => Colors.DarkSlateBlue,
-						"darkslategray" => Colors.DarkSlateGray,
-						"darkturquoise" => Colors.DarkTurquoise,
-						"darkviolet" => Colors.DarkViolet,
-						"deeppink" => Colors.DeepPink,
-						"deepskyblue" => Colors.DeepSkyBlue,
-						"dimgray" => Colors.DimGray,
-						"dodgerblue" => Colors.DodgerBlue,
-						"firebrick" => Colors.Firebrick,
-						"floralwhite" => Colors.FloralWhite,
-						"forestgreen" => Colors.ForestGreen,
-						"fuchsia" => Colors.Fuchsia,
-						"gainsboro" => Colors.Gainsboro,
-						"ghostwhite" => Colors.GhostWhite,
-						"gold" => Colors.Gold,
-						"goldenrod" => Colors.Goldenrod,
-						"gray" => Colors.Gray,
-						"green" => Colors.Green,
-						"greenyellow" => Colors.GreenYellow,
-						"honeydew" => Colors.Honeydew,
-						"hotpink" => Colors.HotPink,
-						"indianred" => Colors.IndianRed,
-						"indigo" => Colors.Indigo,
-						"ivory" => Colors.Ivory,
-						"khaki" => Colors.Khaki,
-						"lavender" => Colors.Lavender,
-						"lavenderblush" => Colors.LavenderBlush,
-						"lawngreen" => Colors.LawnGreen,
-						"lemonchiffon" => Colors.LemonChiffon,
-						"lightblue" => Colors.LightBlue,
-						"lightcoral" => Colors.LightCoral,
-						"lightcyan" => Colors.LightCyan,
-						"lightgoldenrodyellow" => Colors.LightGoldenrodYellow,
-						"lightgrey" => Colors.LightGrey,
-						"lightgray" => Colors.LightGray,
-						"lightgreen" => Colors.LightGreen,
-						"lightpink" => Colors.LightPink,
-						"lightsalmon" => Colors.LightSalmon,
-						"lightseagreen" => Colors.LightSeaGreen,
-						"lightskyblue" => Colors.LightSkyBlue,
-						"lightslategray" => Colors.LightSlateGray,
-						"lightsteelblue" => Colors.LightSteelBlue,
-						"lightyellow" => Colors.LightYellow,
-						"lime" => Colors.Lime,
-						"limegreen" => Colors.LimeGreen,
-						"linen" => Colors.Linen,
-						"magenta" => Colors.Magenta,
-						"maroon" => Colors.Maroon,
-						"mediumaquamarine" => Colors.MediumAquamarine,
-						"mediumblue" => Colors.MediumBlue,
-						"mediumorchid" => Colors.MediumOrchid,
-						"mediumpurple" => Colors.MediumPurple,
-						"mediumseagreen" => Colors.MediumSeaGreen,
-						"mediumslateblue" => Colors.MediumSlateBlue,
-						"mediumspringgreen" => Colors.MediumSpringGreen,
-						"mediumturquoise" => Colors.MediumTurquoise,
-						"mediumvioletred" => Colors.MediumVioletRed,
-						"midnightblue" => Colors.MidnightBlue,
-						"mintcream" => Colors.MintCream,
-						"mistyrose" => Colors.MistyRose,
-						"moccasin" => Colors.Moccasin,
-						"navajowhite" => Colors.NavajoWhite,
-						"navy" => Colors.Navy,
-						"oldlace" => Colors.OldLace,
-						"olive" => Colors.Olive,
-						"olivedrab" => Colors.OliveDrab,
-						"orange" => Colors.Orange,
-						"orangered" => Colors.OrangeRed,
-						"orchid" => Colors.Orchid,
-						"palegoldenrod" => Colors.PaleGoldenrod,
-						"palegreen" => Colors.PaleGreen,
-						"paleturquoise" => Colors.PaleTurquoise,
-						"palevioletred" => Colors.PaleVioletRed,
-						"papayawhip" => Colors.PapayaWhip,
-						"peachpuff" => Colors.PeachPuff,
-						"peru" => Colors.Peru,
-						"pink" => Colors.Pink,
-						"plum" => Colors.Plum,
-						"powderblue" => Colors.PowderBlue,
-						"purple" => Colors.Purple,
-						"red" => Colors.Red,
-						"rosybrown" => Colors.RosyBrown,
-						"royalblue" => Colors.RoyalBlue,
-						"saddlebrown" => Colors.SaddleBrown,
-						"salmon" => Colors.Salmon,
-						"sandybrown" => Colors.SandyBrown,
-						"seagreen" => Colors.SeaGreen,
-						"seashell" => Colors.SeaShell,
-						"sienna" => Colors.Sienna,
-						"silver" => Colors.Silver,
-						"skyblue" => Colors.SkyBlue,
-						"slateblue" => Colors.SlateBlue,
-						"slategray" => Colors.SlateGray,
-						"snow" => Colors.Snow,
-						"springgreen" => Colors.SpringGreen,
-						"steelblue" => Colors.SteelBlue,
-						"tan" => Colors.Tan,
-						"teal" => Colors.Teal,
-						"thistle" => Colors.Thistle,
-						"tomato" => Colors.Tomato,
-						"transparent" => Colors.Transparent,
-						"turquoise" => Colors.Turquoise,
-						"violet" => Colors.Violet,
-						"wheat" => Colors.Wheat,
-						"white" => Colors.White,
-						"whitesmoke" => Colors.WhiteSmoke,
-						"yellow" => Colors.Yellow,
-						"yellowgreen" => Colors.YellowGreen,
-						_ => null
-					};
-
-					if (namedColor != null)
-					{
-						color = namedColor;
-						return true;
-					}
-
-					// Look for fields of Color or Colors matching the name
-					var field = typeof(Color).GetFields().FirstOrDefault(fi => fi.IsStatic && string.Equals(fi.Name, namedColorStr, StringComparison.OrdinalIgnoreCase));
-					if (field != null)
-					{
-						var fieldColor = field.GetValue(null) as Color;
-						if (fieldColor != null)
-						{
-							color = fieldColor;
-							return true;
-						}
-					}
-					field = typeof(Colors).GetFields().FirstOrDefault(fi => fi.IsStatic && string.Equals(fi.Name, namedColorStr, StringComparison.OrdinalIgnoreCase));
-					if (field != null)
-					{
-						var fieldColor = field.GetValue(null) as Color;
-						if (fieldColor != null)
-						{
-							color = fieldColor;
-							return true;
-						}
-					}
-
-					// Look for property of Color or Colors matching the name
-					var property = typeof(Color).GetProperties().FirstOrDefault(pi => string.Equals(pi.Name, namedColorStr, StringComparison.OrdinalIgnoreCase) && pi.CanRead && pi.GetMethod.IsStatic);
-					if (property != null)
-					{
-						var propColor = property.GetValue(null, null) as Color;
-						if (propColor != null)
-						{
-							color = propColor;
-							return true;
-						}
-					}
-					property = typeof(Colors).GetProperties().FirstOrDefault(pi => string.Equals(pi.Name, namedColorStr, StringComparison.OrdinalIgnoreCase) && pi.CanRead && pi.GetMethod.IsStatic);
-					if (property != null)
-					{
-						var propColor = property.GetValue(null, null) as Color;
-						if (propColor != null)
-						{
-							color = propColor;
-							return true;
-						}
-					}
+					color = namedColor;
+					return true;
 				}
 			}
 
+ReturnFalse:
 			color = default;
 			return false;
 		}
 
-		static double ParseColorValue(string elem, int maxValue, bool acceptPercent)
+		static Color GetNamedColor(ReadOnlySpan<char> value)
 		{
-			elem = elem.Trim();
-			if (elem.EndsWith("%", StringComparison.Ordinal) && acceptPercent)
+			// the longest built-in Color's name is much lower than this check, so we should not allocate here in a typical usage
+			Span<char> loweredValue = value.Length <= 128 ? stackalloc char[value.Length] : new char[value.Length];
+
+			int charsWritten = value.ToLowerInvariant(loweredValue);
+			Debug.Assert(charsWritten == value.Length);
+
+			// this should use the C# feature https://github.com/dotnet/csharplang/issues/1881, when it is available
+			// for now, we need to allocate the lowered string
+			return loweredValue.ToString() switch
 			{
-				maxValue = 100;
-				elem = elem.Substring(0, elem.Length - 1);
-			}
-			return double.Parse(elem, NumberStyles.Number, CultureInfo.InvariantCulture).Clamp(0, maxValue) / maxValue;
+				"default" => default,
+				"aliceblue" => Colors.AliceBlue,
+				"antiquewhite" => Colors.AntiqueWhite,
+				"aqua" => Colors.Aqua,
+				"aquamarine" => Colors.Aquamarine,
+				"azure" => Colors.Azure,
+				"beige" => Colors.Beige,
+				"bisque" => Colors.Bisque,
+				"black" => Colors.Black,
+				"blanchedalmond" => Colors.BlanchedAlmond,
+				"blue" => Colors.Blue,
+				"blueviolet" => Colors.BlueViolet,
+				"brown" => Colors.Brown,
+				"burlywood" => Colors.BurlyWood,
+				"cadetblue" => Colors.CadetBlue,
+				"chartreuse" => Colors.Chartreuse,
+				"chocolate" => Colors.Chocolate,
+				"coral" => Colors.Coral,
+				"cornflowerblue" => Colors.CornflowerBlue,
+				"cornsilk" => Colors.Cornsilk,
+				"crimson" => Colors.Crimson,
+				"cyan" => Colors.Cyan,
+				"darkblue" => Colors.DarkBlue,
+				"darkcyan" => Colors.DarkCyan,
+				"darkgoldenrod" => Colors.DarkGoldenrod,
+				"darkgray" => Colors.DarkGray,
+				"darkgreen" => Colors.DarkGreen,
+				"darkgrey" => Colors.DarkGrey,
+				"darkkhaki" => Colors.DarkKhaki,
+				"darkmagenta" => Colors.DarkMagenta,
+				"darkolivegreen" => Colors.DarkOliveGreen,
+				"darkorange" => Colors.DarkOrange,
+				"darkorchid" => Colors.DarkOrchid,
+				"darkred" => Colors.DarkRed,
+				"darksalmon" => Colors.DarkSalmon,
+				"darkseagreen" => Colors.DarkSeaGreen,
+				"darkslateblue" => Colors.DarkSlateBlue,
+				"darkslategray" => Colors.DarkSlateGray,
+				"darkslategrey" => Colors.DarkSlateGrey,
+				"darkturquoise" => Colors.DarkTurquoise,
+				"darkviolet" => Colors.DarkViolet,
+				"deeppink" => Colors.DeepPink,
+				"deepskyblue" => Colors.DeepSkyBlue,
+				"dimgray" => Colors.DimGray,
+				"dimgrey" => Colors.DimGrey,
+				"dodgerblue" => Colors.DodgerBlue,
+				"firebrick" => Colors.Firebrick,
+				"floralwhite" => Colors.FloralWhite,
+				"forestgreen" => Colors.ForestGreen,
+				"fuchsia" => Colors.Fuchsia,
+				"gainsboro" => Colors.Gainsboro,
+				"ghostwhite" => Colors.GhostWhite,
+				"gold" => Colors.Gold,
+				"goldenrod" => Colors.Goldenrod,
+				"gray" => Colors.Gray,
+				"green" => Colors.Green,
+				"grey" => Colors.Grey,
+				"greenyellow" => Colors.GreenYellow,
+				"honeydew" => Colors.Honeydew,
+				"hotpink" => Colors.HotPink,
+				"indianred" => Colors.IndianRed,
+				"indigo" => Colors.Indigo,
+				"ivory" => Colors.Ivory,
+				"khaki" => Colors.Khaki,
+				"lavender" => Colors.Lavender,
+				"lavenderblush" => Colors.LavenderBlush,
+				"lawngreen" => Colors.LawnGreen,
+				"lemonchiffon" => Colors.LemonChiffon,
+				"lightblue" => Colors.LightBlue,
+				"lightcoral" => Colors.LightCoral,
+				"lightcyan" => Colors.LightCyan,
+				"lightgoldenrodyellow" => Colors.LightGoldenrodYellow,
+				"lightgrey" => Colors.LightGrey,
+				"lightgray" => Colors.LightGray,
+				"lightgreen" => Colors.LightGreen,
+				"lightpink" => Colors.LightPink,
+				"lightsalmon" => Colors.LightSalmon,
+				"lightseagreen" => Colors.LightSeaGreen,
+				"lightskyblue" => Colors.LightSkyBlue,
+				"lightslategray" => Colors.LightSlateGray,
+				"lightslategrey" => Colors.LightSlateGrey,
+				"lightsteelblue" => Colors.LightSteelBlue,
+				"lightyellow" => Colors.LightYellow,
+				"lime" => Colors.Lime,
+				"limegreen" => Colors.LimeGreen,
+				"linen" => Colors.Linen,
+				"magenta" => Colors.Magenta,
+				"maroon" => Colors.Maroon,
+				"mediumaquamarine" => Colors.MediumAquamarine,
+				"mediumblue" => Colors.MediumBlue,
+				"mediumorchid" => Colors.MediumOrchid,
+				"mediumpurple" => Colors.MediumPurple,
+				"mediumseagreen" => Colors.MediumSeaGreen,
+				"mediumslateblue" => Colors.MediumSlateBlue,
+				"mediumspringgreen" => Colors.MediumSpringGreen,
+				"mediumturquoise" => Colors.MediumTurquoise,
+				"mediumvioletred" => Colors.MediumVioletRed,
+				"midnightblue" => Colors.MidnightBlue,
+				"mintcream" => Colors.MintCream,
+				"mistyrose" => Colors.MistyRose,
+				"moccasin" => Colors.Moccasin,
+				"navajowhite" => Colors.NavajoWhite,
+				"navy" => Colors.Navy,
+				"oldlace" => Colors.OldLace,
+				"olive" => Colors.Olive,
+				"olivedrab" => Colors.OliveDrab,
+				"orange" => Colors.Orange,
+				"orangered" => Colors.OrangeRed,
+				"orchid" => Colors.Orchid,
+				"palegoldenrod" => Colors.PaleGoldenrod,
+				"palegreen" => Colors.PaleGreen,
+				"paleturquoise" => Colors.PaleTurquoise,
+				"palevioletred" => Colors.PaleVioletRed,
+				"papayawhip" => Colors.PapayaWhip,
+				"peachpuff" => Colors.PeachPuff,
+				"peru" => Colors.Peru,
+				"pink" => Colors.Pink,
+				"plum" => Colors.Plum,
+				"powderblue" => Colors.PowderBlue,
+				"purple" => Colors.Purple,
+				"red" => Colors.Red,
+				"rosybrown" => Colors.RosyBrown,
+				"royalblue" => Colors.RoyalBlue,
+				"saddlebrown" => Colors.SaddleBrown,
+				"salmon" => Colors.Salmon,
+				"sandybrown" => Colors.SandyBrown,
+				"seagreen" => Colors.SeaGreen,
+				"seashell" => Colors.SeaShell,
+				"sienna" => Colors.Sienna,
+				"silver" => Colors.Silver,
+				"skyblue" => Colors.SkyBlue,
+				"slateblue" => Colors.SlateBlue,
+				"slategray" => Colors.SlateGray,
+				"slategrey" => Colors.SlateGrey,
+				"snow" => Colors.Snow,
+				"springgreen" => Colors.SpringGreen,
+				"steelblue" => Colors.SteelBlue,
+				"tan" => Colors.Tan,
+				"teal" => Colors.Teal,
+				"thistle" => Colors.Thistle,
+				"tomato" => Colors.Tomato,
+				"transparent" => Colors.Transparent,
+				"turquoise" => Colors.Turquoise,
+				"violet" => Colors.Violet,
+				"wheat" => Colors.Wheat,
+				"white" => Colors.White,
+				"whitesmoke" => Colors.WhiteSmoke,
+				"yellow" => Colors.Yellow,
+				"yellowgreen" => Colors.YellowGreen,
+				_ => null
+			};
 		}
 
-		static double ParseOpacity(string elem)
-			=> double.Parse(elem, NumberStyles.Number, CultureInfo.InvariantCulture).Clamp(0, 1);
+		static bool TryParseFourColorRanges(
+			ReadOnlySpan<char> value,
+			out ReadOnlySpan<char> quad0,
+			out ReadOnlySpan<char> quad1,
+			out ReadOnlySpan<char> quad2,
+			out ReadOnlySpan<char> quad3)
+		{
+			var op = value.IndexOf('(');
+			var cp = value.LastIndexOf(')');
+			if (op < 0 || cp < 0 || cp < op)
+				goto ReturnFalse;
+
+			value = value.Slice(op + 1, cp - op - 1);
+
+			int index = value.IndexOf(',');
+			if (index == -1)
+				goto ReturnFalse;
+			quad0 = value.Slice(0, index);
+			value = value.Slice(index + 1);
+
+			index = value.IndexOf(',');
+			if (index == -1)
+				goto ReturnFalse;
+			quad1 = value.Slice(0, index);
+			value = value.Slice(index + 1);
+
+			index = value.IndexOf(',');
+			if (index == -1)
+				goto ReturnFalse;
+			quad2 = value.Slice(0, index);
+			quad3 = value.Slice(index + 1);
+
+			// if there are more commas, fail
+			if (quad3.IndexOf(',') != -1)
+				goto ReturnFalse;
+
+			return true;
+
+ReturnFalse:
+			quad0 = quad1 = quad2 = quad3 = default;
+			return false;
+		}
+
+		static bool TryParseThreeColorRanges(
+			ReadOnlySpan<char> value,
+			out ReadOnlySpan<char> triplet0,
+			out ReadOnlySpan<char> triplet1,
+			out ReadOnlySpan<char> triplet2)
+		{
+			var op = value.IndexOf('(');
+			var cp = value.LastIndexOf(')');
+			if (op < 0 || cp < 0 || cp < op)
+				goto ReturnFalse;
+
+			value = value.Slice(op + 1, cp - op - 1);
+
+			int index = value.IndexOf(',');
+			if (index == -1)
+				goto ReturnFalse;
+			triplet0 = value.Slice(0, index);
+			value = value.Slice(index + 1);
+
+			index = value.IndexOf(',');
+			if (index == -1)
+				goto ReturnFalse;
+			triplet1 = value.Slice(0, index);
+			triplet2 = value.Slice(index + 1);
+
+			// if there are more commas, fail
+			if (triplet2.IndexOf(',') != -1)
+				goto ReturnFalse;
+
+			return true;
+
+ReturnFalse:
+			triplet0 = triplet1 = triplet2 = default;
+			return false;
+		}
+
+		static bool TryParseColorValue(ReadOnlySpan<char> elem, int maxValue, bool acceptPercent, out double value)
+		{
+			elem = elem.Trim();
+			if (!elem.IsEmpty && elem[elem.Length - 1] == '%' && acceptPercent)
+			{
+				maxValue = 100;
+				elem = elem.Slice(0, elem.Length - 1);
+			}
+
+			if (TryParseDouble(elem, out value))
+			{
+				value = value.Clamp(0, maxValue) / maxValue;
+				return true;
+			}
+			return false;
+		}
+
+		static bool TryParseOpacity(ReadOnlySpan<char> elem, out double value)
+		{
+			if (TryParseDouble(elem, out value))
+			{
+				value = value.Clamp(0, 1);
+				return true;
+			}
+			return false;
+		}
+
+		static bool TryParseDouble(ReadOnlySpan<char> s, out double value) =>
+			double.TryParse(
+#if NETSTANDARD2_0 || TIZEN
+				s.ToString(),
+#else
+				s, 
+#endif
+				NumberStyles.Number, CultureInfo.InvariantCulture, out value);
+
+		static int ParseInt(ReadOnlySpan<char> s) =>
+			int.Parse(
+#if NETSTANDARD2_0 || TIZEN
+				s.ToString(),
+#else
+				s,
+#endif
+				 NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
 
 		public static implicit operator Color(Vector4 color) => new Color(color);
-
 	}
 }

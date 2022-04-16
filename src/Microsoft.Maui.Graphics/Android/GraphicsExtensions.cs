@@ -41,24 +41,24 @@ namespace Microsoft.Maui.Graphics.Platform
 			return new Color(r, g, b, a);
 		}
 
-		public static RectF AsRectF(this RectangleF target)
+		public static global::Android.Graphics.RectF AsRectF(this RectF target)
 		{
-			return new RectF(target.Left, target.Top, target.Right, target.Bottom);
+			return new global::Android.Graphics.RectF(target.Left, target.Top, target.Right, target.Bottom);
 		}
 
-		public static RectangleF AsRectangleF(this RectF target)
+		public static RectF AsRectangleF(this global::Android.Graphics.RectF target)
 		{
-			return new RectangleF(target.Left, target.Top, Math.Abs(target.Width()), Math.Abs(target.Height()));
+			return new RectF(target.Left, target.Top, Math.Abs(target.Width()), Math.Abs(target.Height()));
 		}
 
-		public static Rectangle AsRectangle(this RectF target)
+		public static Rect AsRectangle(this global::Android.Graphics.RectF target)
 		{
-			return new Rectangle(target.Left, target.Top, Math.Abs(target.Width()), Math.Abs(target.Height()));
+			return new Rect(target.Left, target.Top, Math.Abs(target.Width()), Math.Abs(target.Height()));
 		}
 
-		public static RectF AsRectF(this Rect target)
+		public static global::Android.Graphics.RectF AsRectF(this global::Android.Graphics.Rect target)
 		{
-			return new RectF(target);
+			return new global::Android.Graphics.RectF(target);
 		}
 
 		public static global::Android.Graphics.PointF ToPointF(this PointF target)
@@ -143,8 +143,8 @@ namespace Microsoft.Maui.Graphics.Platform
 						endAngle += 360;
 					}
 
-					var rect = new RectF(offsetX + topLeft.X * scaleX, offsetY + topLeft.Y * scaleY, offsetX + bottomRight.X * scaleX, offsetY + bottomRight.Y * scaleY);
-					var sweep = Geometry.GetSweep(startAngle, endAngle, clockwise);
+					var rect = new global::Android.Graphics.RectF(offsetX + topLeft.X * scaleX, offsetY + topLeft.Y * scaleY, offsetX + bottomRight.X * scaleX, offsetY + bottomRight.Y * scaleY);
+					var sweep = GeometryUtil.GetSweep(startAngle, endAngle, clockwise);
 
 					startAngle *= -1;
 					if (!clockwise)
@@ -225,8 +225,8 @@ namespace Microsoft.Maui.Graphics.Platform
 					endAngle += 360;
 				}
 
-				var rect = new RectF(topLeft.X * ppu, topLeft.Y * ppu, bottomRight.X * ppu, bottomRight.Y * ppu);
-				var sweep = Geometry.GetSweep(startAngle, endAngle, clockwise);
+				var rect = new global::Android.Graphics.RectF(topLeft.X * ppu, topLeft.Y * ppu, bottomRight.X * ppu, bottomRight.Y * ppu);
+				var sweep = GeometryUtil.GetSweep(startAngle, endAngle, clockwise);
 
 				startAngle *= -1;
 				if (!clockwise)
@@ -303,8 +303,8 @@ namespace Microsoft.Maui.Graphics.Platform
 						endAngle += 360;
 					}
 
-					var rect = new RectF(topLeft.X * ppu, topLeft.Y * ppu, bottomRight.X * ppu, bottomRight.Y * ppu);
-					var sweep = Geometry.GetSweep(startAngle, endAngle, clockwise);
+					var rect = new global::Android.Graphics.RectF(topLeft.X * ppu, topLeft.Y * ppu, bottomRight.X * ppu, bottomRight.Y * ppu);
+					var sweep = GeometryUtil.GetSweep(startAngle, endAngle, clockwise);
 
 					startAngle *= -1;
 					if (!clockwise)

@@ -23,7 +23,7 @@ namespace Microsoft.Maui.Graphics.SharpDX
 		private Vector2 _linearGradientEndPoint;
 		private Vector2 _radialGradientCenterPoint;
 		private float _radialGradientRadius;
-		private RectangleF _fillRectangle;
+		private RectF _fillRectangle;
 		private GradientStopCollection _gradientStopCollection;
 		private RectangleGeometry _layerBounds;
 		private PathGeometry _layerMask;
@@ -321,7 +321,7 @@ namespace Microsoft.Maui.Graphics.SharpDX
 						else if (_sourceFillpaint is RadialGradientPaint radialGradientPaint)
 						{
 							if(_radialGradientRadius == 0)
-							 _radialGradientRadius = Geometry.GetDistance(_fillRectangle.Left, _fillRectangle.Top, _fillRectangle.Right, _fillRectangle.Bottom);
+							 _radialGradientRadius = GeometryUtil.GetDistance(_fillRectangle.Left, _fillRectangle.Top, _fillRectangle.Right, _fillRectangle.Bottom);
 
 							var radialGradientBrushProperties = new RadialGradientBrushProperties();
 							var gradientStops = new global::SharpDX.Direct2D1.GradientStop[radialGradientPaint.GradientStops.Length];
@@ -513,9 +513,9 @@ namespace Microsoft.Maui.Graphics.SharpDX
 			BlurRadius = 0;
 		}
 
-		public void SetStrokeDashPattern(float[] pattern, float strokeSize)
+		public void SetStrokeDashPattern(float[] strokePattern, float strokeDashOffset, float strokeSize)
 		{
-			if (pattern == null || pattern.Length == 0)
+			if (strokePattern == null || strokePattern.Length == 0)
 			{
 				if (_needsStrokeStyle == false) return;
 				_strokeStyleProperties.DashStyle = DashStyle.Solid;
@@ -524,7 +524,7 @@ namespace Microsoft.Maui.Graphics.SharpDX
 			else
 			{
 				_strokeStyleProperties.DashStyle = DashStyle.Custom;
-				_dashes = pattern;
+				_dashes = strokePattern;
 			}
 
 			InvalidateStrokeStyle();
@@ -559,7 +559,7 @@ namespace Microsoft.Maui.Graphics.SharpDX
 			_linearGradientEndPoint = endPoint;
 		}
 
-		public void SetRadialGradient(Paint aPaint, Vector2 center, float radius, RectangleF rectangle)
+		public void SetRadialGradient(Paint aPaint, Vector2 center, float radius, RectF rectangle)
 		{
 			ReleaseFillBrush();
 			_fillBrushValid = false;
@@ -635,14 +635,14 @@ namespace Microsoft.Maui.Graphics.SharpDX
 
 		public Matrix3x2 DxRotate(float aAngle)
 		{
-			float radians = Geometry.DegreesToRadians(aAngle);
+			float radians = GeometryUtil.DegreesToRadians(aAngle);
 			Matrix = Matrix.Rotate(radians);
 			return Matrix;
 		}
 
 		public Matrix3x2 DxRotate(float aAngle, float x, float y)
 		{
-			float radians = Geometry.DegreesToRadians(aAngle);
+			float radians = GeometryUtil.DegreesToRadians(aAngle);
 			Matrix = Matrix.Translate(x, y);
 			Matrix = Matrix.Rotate(radians);
 			Matrix = Matrix.Translate(-x, -y);

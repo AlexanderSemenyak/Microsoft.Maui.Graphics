@@ -34,7 +34,7 @@ namespace Microsoft.Maui.Graphics.Platform
 
 		private IImage _fillImage;
 
-		private RectangleF _gradientRectangle = RectangleF.Zero;
+		private RectF _gradientRectangle = RectF.Zero;
 		private Paint _paint;
 
 		// A local instance of a rectangle to avoid lots of object creation.
@@ -274,9 +274,9 @@ namespace Microsoft.Maui.Graphics.Platform
 			}
 		}
 
-		protected override void PlatformSetStrokeDashPattern(float[] pattern, float strokeSize)
+		protected override void PlatformSetStrokeDashPattern(float[] strokePattern, float strokeDashOffset, float strokeSize)
 		{
-			if (pattern == null)
+			if (strokePattern == null)
 			{
 				_context.SetLineDash(0, EmptyNFloatArray);
 			}
@@ -293,17 +293,19 @@ namespace Microsoft.Maui.Graphics.Platform
 						actualStrokeSize = strokeLimit / scale;
 				}
 
-				var actualDashPattern = new nfloat[pattern.Length];
-				for (var i = 0; i < pattern.Length; i++)
+				var actualDashPattern = new nfloat[strokePattern.Length];
+				for (var i = 0; i < strokePattern.Length; i++)
 				{
-					actualDashPattern[i] = pattern[i] * actualStrokeSize;
+					actualDashPattern[i] = strokePattern[i] * actualStrokeSize;
 				}
 
-				_context.SetLineDash(0, actualDashPattern, actualDashPattern.Length);
+				var actualDashOffset = strokeDashOffset * actualStrokeSize;
+
+				_context.SetLineDash(actualDashOffset, actualDashPattern, actualDashPattern.Length);
 			}
 		}
 
-		public override void SetFillPaint(Paint paint, RectangleF rectangle)
+		public override void SetFillPaint(Paint paint, RectF rectangle)
 		{
 			_gradientRectangle = rectangle;
 
@@ -407,8 +409,8 @@ namespace Microsoft.Maui.Graphics.Platform
 			_rect.Height = height;
 
 			if (!_antialias) _context.SetShouldAntialias(false);
-			var startAngleInRadians = Geometry.DegreesToRadians(-startAngle);
-			var endAngleInRadians = Geometry.DegreesToRadians(-endAngle);
+			var startAngleInRadians = GeometryUtil.DegreesToRadians(-startAngle);
+			var endAngleInRadians = GeometryUtil.DegreesToRadians(-endAngle);
 
 			while (startAngleInRadians < 0)
 				startAngleInRadians += (float) Math.PI * 2;
@@ -455,8 +457,8 @@ namespace Microsoft.Maui.Graphics.Platform
 			_rect.Width = width;
 			_rect.Height = height;
 
-			var startAngleInRadians = Geometry.DegreesToRadians(-startAngle);
-			var endAngleInRadians = Geometry.DegreesToRadians(-endAngle);
+			var startAngleInRadians = GeometryUtil.DegreesToRadians(-startAngle);
+			var endAngleInRadians = GeometryUtil.DegreesToRadians(-endAngle);
 
 			while (startAngleInRadians < 0)
 				startAngleInRadians += (float) Math.PI * 2;

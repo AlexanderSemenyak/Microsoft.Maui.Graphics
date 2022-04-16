@@ -19,7 +19,8 @@ namespace Microsoft.Maui.Graphics
 		private bool _strokeDashPatternDirty;
 
 		protected abstract float PlatformStrokeSize { set; }
-		protected abstract void PlatformSetStrokeDashPattern(float[] pattern, float strokeSize);
+
+		protected abstract void PlatformSetStrokeDashPattern(float[] strokePattern, float strokeDashOffset, float strokeSize);
 		protected abstract void PlatformDrawLine(float x1, float y1, float x2, float y2);
 		protected abstract void PlatformDrawArc(float x, float y, float width, float height, float startAngle, float endAngle, bool clockwise, bool closed);
 		protected abstract void PlatformDrawRectangle(float x, float y, float width, float height);
@@ -113,12 +114,21 @@ namespace Microsoft.Maui.Graphics
 				}
 			}
 		}
+		public float StrokeDashOffset
+		{
+			set
+			{
+				var dashOffset = value;
+
+				_currentState.StrokeDashOffset = dashOffset;
+			}
+		}
 
 		private void EnsureStrokePatternSet()
 		{
 			if (_strokeDashPatternDirty)
 			{
-				PlatformSetStrokeDashPattern(_currentState.StrokeDashPattern, _currentState.StrokeSize);
+				PlatformSetStrokeDashPattern(_currentState.StrokeDashPattern, _currentState.StrokeDashOffset, _currentState.StrokeSize);
 				_strokeDashPatternDirty = false;
 			}
 		}
@@ -219,7 +229,7 @@ namespace Microsoft.Maui.Graphics
 		}
 
 		public abstract void SetShadow(SizeF offset, float blur, Color color);
-		public abstract void SetFillPaint(Paint paint, RectangleF rectangle);
+		public abstract void SetFillPaint(Paint paint, RectF rectangle);
 
 		public abstract void DrawImage(IImage image, float x, float y, float width, float height);
 
@@ -259,7 +269,7 @@ namespace Microsoft.Maui.Graphics
 
 		public void Rotate(float degrees, float x, float y)
 		{
-			var radians = Geometry.DegreesToRadians(degrees);
+			var radians = GeometryUtil.DegreesToRadians(degrees);
 
 			var transform = _currentState.Transform;
 			transform = Matrix3x2.CreateTranslation(x, y) * transform;
@@ -272,7 +282,7 @@ namespace Microsoft.Maui.Graphics
 
 		public void Rotate(float degrees)
 		{
-			var radians = Geometry.DegreesToRadians(degrees);
+			var radians = GeometryUtil.DegreesToRadians(degrees);
 
 			var transform = _currentState.Transform;			
 			transform = Matrix3x2.CreateRotation(radians) * transform;			

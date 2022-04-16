@@ -273,6 +273,7 @@ namespace Microsoft.Maui.Graphics.Xaml
 			element.Stroke = CurrentState.XamlStrokeBrush;
 			element.StrokeThickness = CurrentState.StrokeSize;
 			element.StrokeDashArray = CurrentState.XamlDashArray;
+			element.StrokeDashOffset = CurrentState.StrokeDashOffset;
 			element.StrokeEndLineCap = CurrentState.XamlLineCap;
 			element.StrokeStartLineCap = CurrentState.XamlLineCap;
 			element.StrokeMiterLimit = CurrentState.MiterLimit;
@@ -295,6 +296,7 @@ namespace Microsoft.Maui.Graphics.Xaml
 			element.Stroke = CurrentState.XamlStrokeBrush;
 			element.StrokeThickness = CurrentState.StrokeSize;
 			element.StrokeDashArray = CurrentState.XamlDashArray;
+			element.StrokeDashOffset = CurrentState.StrokeDashOffset;
 			element.StrokeEndLineCap = CurrentState.XamlLineCap;
 			element.StrokeStartLineCap = CurrentState.XamlLineCap;
 			element.StrokeMiterLimit = CurrentState.MiterLimit;
@@ -320,6 +322,7 @@ namespace Microsoft.Maui.Graphics.Xaml
 			element.Stroke = CurrentState.XamlStrokeBrush;
 			element.StrokeThickness = CurrentState.StrokeSize;
 			element.StrokeDashArray = CurrentState.XamlDashArray;
+			element.StrokeDashOffset = CurrentState.StrokeDashOffset;
 			element.StrokeEndLineCap = CurrentState.XamlLineCap;
 			element.StrokeStartLineCap = CurrentState.XamlLineCap;
 			element.StrokeMiterLimit = CurrentState.MiterLimit;
@@ -345,6 +348,7 @@ namespace Microsoft.Maui.Graphics.Xaml
 			element.Stroke = CurrentState.XamlStrokeBrush;
 			element.StrokeThickness = CurrentState.StrokeSize;
 			element.StrokeDashArray = CurrentState.XamlDashArray;
+			element.StrokeDashOffset = CurrentState.StrokeDashOffset;
 			element.StrokeEndLineCap = CurrentState.XamlLineCap;
 			element.StrokeStartLineCap = CurrentState.XamlLineCap;
 			element.StrokeMiterLimit = CurrentState.MiterLimit;
@@ -374,10 +378,10 @@ namespace Microsoft.Maui.Graphics.Xaml
 			var figure = geometry.Figures[0];
 			var arcSegment = (ArcSegment)figure.Segments[0];
 
-			var sweep = Geometry.GetSweep(startAngle,endAngle,clockwise);
+			var sweep = GeometryUtil.GetSweep(startAngle,endAngle,clockwise);
 			var absSweep = Math.Abs(sweep);
-			var startPoint = Geometry.EllipseAngleToPoint(_rectX, _rectY, _rectWidth, _rectHeight, -startAngle);
-			var endPoint = Geometry.EllipseAngleToPoint(_rectX, _rectY, _rectWidth, _rectHeight, -endAngle);
+			var startPoint = GeometryUtil.EllipseAngleToPoint(_rectX, _rectY, _rectWidth, _rectHeight, -startAngle);
+			var endPoint = GeometryUtil.EllipseAngleToPoint(_rectX, _rectY, _rectWidth, _rectHeight, -endAngle);
 
 			figure.StartPoint = new global::Windows.Foundation.Point(startPoint.X, startPoint.Y);
 			arcSegment.Point = new global::Windows.Foundation.Point(endPoint.X, endPoint.Y);
@@ -412,6 +416,7 @@ namespace Microsoft.Maui.Graphics.Xaml
 			element.Stroke = CurrentState.XamlStrokeBrush;
 			element.StrokeThickness = CurrentState.StrokeSize;
 			element.StrokeDashArray = CurrentState.XamlDashArray;
+			element.StrokeDashOffset = CurrentState.StrokeDashOffset;
 			element.StrokeEndLineCap = CurrentState.XamlLineCap;
 			element.StrokeStartLineCap = CurrentState.XamlLineCap;
 			element.StrokeMiterLimit = CurrentState.MiterLimit;
@@ -444,13 +449,14 @@ namespace Microsoft.Maui.Graphics.Xaml
 			{
 				System.Diagnostics.Debug.WriteLine(exc);
 			}
+			element.StrokeDashOffset = CurrentState.StrokeDashOffset;
 			element.StrokeEndLineCap = CurrentState.XamlLineCap;
 			element.StrokeStartLineCap = CurrentState.XamlLineCap;
 			element.StrokeMiterLimit = CurrentState.MiterLimit;
 			element.Opacity = CurrentState.Alpha;
 		}
 
-		protected override void PlatformSetStrokeDashPattern(float[] pattern, float strokeSize)
+		protected override void PlatformSetStrokeDashPattern(float[] strokePattern, float strokeDashOffset, float strokeSize)
 		{
 			CurrentState.XamlDashArray = null;
 		}
@@ -464,7 +470,7 @@ namespace Microsoft.Maui.Graphics.Xaml
 		{
 
 		}
-		public override void SetFillPaint(Paint paint, RectangleF rectangle)
+		public override void SetFillPaint(Paint paint, RectF rectangle)
 		{
 			if (paint is SolidPaint solidPaint)
 				FillColor = solidPaint.Color;
@@ -763,10 +769,10 @@ namespace Microsoft.Maui.Graphics.Xaml
 			var figure = geometry.Figures[0];
 			var arcSegment = (ArcSegment)figure.Segments[0];
 
-			var sweep = Geometry.GetSweep(startAngle, endAngle, clockwise);
+			var sweep = GeometryUtil.GetSweep(startAngle, endAngle, clockwise);
 			var absSweep = Math.Abs(sweep);
-			var startPoint = Geometry.EllipseAngleToPoint(_rectX, _rectY, _rectWidth, _rectHeight, -startAngle);
-			var endPoint = Geometry.EllipseAngleToPoint(_rectX, _rectY, _rectWidth, _rectHeight, -endAngle);
+			var startPoint = GeometryUtil.EllipseAngleToPoint(_rectX, _rectY, _rectWidth, _rectHeight, -startAngle);
+			var endPoint = GeometryUtil.EllipseAngleToPoint(_rectX, _rectY, _rectWidth, _rectHeight, -endAngle);
 
 			figure.StartPoint = new global::Windows.Foundation.Point(startPoint.X, startPoint.Y);
 			arcSegment.Point = new global::Windows.Foundation.Point(endPoint.X, endPoint.Y);

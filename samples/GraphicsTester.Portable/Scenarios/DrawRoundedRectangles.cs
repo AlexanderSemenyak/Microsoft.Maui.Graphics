@@ -45,6 +45,7 @@ namespace GraphicsTester.Scenarios
 			{
 				canvas.StrokeSize = i;
 				canvas.StrokeDashPattern = DASHED;
+				canvas.StrokeDashOffset = 2;
 				canvas.DrawRoundedRectangle(50f, 200f + i * 30, 150, 20, 5);
 				canvas.DrawRoundedRectangle(250.5f, 200.5f + i * 30, 150, 20, 5);
 			}
@@ -110,7 +111,7 @@ namespace GraphicsTester.Scenarios
 		{
 			canvas.StrokeColor = Colors.Blue;
 			canvas.StrokeSize = 1;
-			RectangleF rect = new RectangleF(275, 400, 100, 100);
+			RectF rect = new RectF(275, 400, 100, 100);
 			canvas.DrawRoundedRectangle(rect, xRadius: 20, yRadius: 40);
 		}
 
@@ -120,7 +121,7 @@ namespace GraphicsTester.Scenarios
 
 			canvas.StrokeSize = .5f;
 			canvas.StrokeColor = Colors.Magenta;
-			RectangleF rect = new RectangleF(50, 740, circleRadius * 4, circleRadius * 4);
+			RectF rect = new RectF(50, 740, circleRadius * 4, circleRadius * 4);
 			canvas.DrawRoundedRectangle(rect, xRadius: circleRadius, yRadius: circleRadius);
 
 			PointF[] circleCenters =

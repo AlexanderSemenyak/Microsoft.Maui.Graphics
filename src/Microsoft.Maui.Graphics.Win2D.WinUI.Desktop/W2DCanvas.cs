@@ -6,7 +6,7 @@ using Microsoft.Graphics.Canvas.Text;
 using Microsoft.Maui.Graphics.Text;
 using System;
 using System.Numerics;
-using Windows.Foundation;
+using WRect = Windows.Foundation.Rect;
 #if NETFX_CORE
 using WColors = global::Windows.UI.Colors;
 #else
@@ -29,7 +29,14 @@ namespace Microsoft.Maui.Graphics.Win2D
 		private Vector2 _linearGradientEndPoint;
 		private Vector2 _radialGradientCenter;
 		private float _radialGradientRadius;
+
+/* Unmerged change from project 'Microsoft.Maui.Graphics.Win2D.WinUI.Desktop'
+Before:
 		private Rect _rect;
+After:
+		private global::Windows.Foundation.Rect _rect;
+*/
+		private WRect _rect;
 		private global::Windows.Foundation.Size _size;
 
 		private bool _bitmapPatternFills;
@@ -77,9 +84,9 @@ namespace Microsoft.Maui.Graphics.Win2D
 			set => CurrentState.StrokeLineJoin = value;
 		}
 
-		protected override void PlatformSetStrokeDashPattern(float[] pattern, float strokeSize)
+		protected override void PlatformSetStrokeDashPattern(float[] strokePattern, float strokeDashOffset, float strokeSize)
 		{
-			CurrentState.SetStrokeDashPattern(pattern, strokeSize);
+			CurrentState.SetStrokeDashPattern(strokePattern, strokeDashOffset, strokeSize);
 		}
 
 		public override Color FillColor
@@ -151,7 +158,7 @@ namespace Microsoft.Maui.Graphics.Win2D
 				endAngle += 360;
 			}
 
-			var rotation = Geometry.GetSweep(startAngle, endAngle, clockwise);
+			var rotation = GeometryUtil.GetSweep(startAngle, endAngle, clockwise);
 			var absRotation = Math.Abs(rotation);
 
 			float strokeWidth = CurrentState.StrokeSize;
@@ -160,8 +167,8 @@ namespace Microsoft.Maui.Graphics.Win2D
 			_size.Width = _rect.Width / 2;
 			_size.Height = _rect.Height / 2;
 
-			var startPoint = Geometry.EllipseAngleToPoint((float)_rect.X, (float)_rect.Y, (float)_rect.Width, (float)_rect.Height, -startAngle);
-			var endPoint = Geometry.EllipseAngleToPoint((float)_rect.X, (float)_rect.Y, (float)_rect.Width, (float)_rect.Height, -endAngle);
+			var startPoint = GeometryUtil.EllipseAngleToPoint((float)_rect.X, (float)_rect.Y, (float)_rect.Width, (float)_rect.Height, -startAngle);
+			var endPoint = GeometryUtil.EllipseAngleToPoint((float)_rect.X, (float)_rect.Y, (float)_rect.Width, (float)_rect.Height, -endAngle);
 
 			_point1.X = startPoint.X;
 			_point1.Y = startPoint.Y;
@@ -351,7 +358,7 @@ namespace Microsoft.Maui.Graphics.Win2D
 			CurrentState.SetShadow(offset, blur, color);
 		}
 
-		public override void SetFillPaint(Paint paint, RectangleF rectangle)
+		public override void SetFillPaint(Paint paint, RectF rectangle)
 		{
 			if (paint == null)
 			{
@@ -418,7 +425,14 @@ namespace Microsoft.Maui.Graphics.Win2D
 						{
 							ExtendX = CanvasEdgeBehavior.Wrap,
 							ExtendY = CanvasEdgeBehavior.Wrap,
+
+/* Unmerged change from project 'Microsoft.Maui.Graphics.Win2D.WinUI.Desktop'
+Before:
 							SourceRectangle = new Rect(
+After:
+							SourceRectangle = new global::Windows.Foundation.Rect(
+*/
+							SourceRectangle = new WRect(
 									(pattern.Width - pattern.StepX) / 2,
 									(pattern.Height - pattern.StepY) / 2,
 									pattern.StepX,
@@ -499,7 +513,14 @@ namespace Microsoft.Maui.Graphics.Win2D
 			if (image is W2DImage platformImage)
 			{
 				SetRect(x, y, width, height);
+
+/* Unmerged change from project 'Microsoft.Maui.Graphics.Win2D.WinUI.Desktop'
+Before:
 				Draw(s => s.DrawImage(platformImage.PlatformImage, _rect, Rect.Empty, CurrentState.Alpha, CanvasImageInterpolation.Linear));
+After:
+				Draw(s => s.DrawImage(platformImage.PlatformImage, _rect, global::Windows.Foundation.Rect.Empty, CurrentState.Alpha, CanvasImageInterpolation.Linear));
+*/
+				Draw(s => s.DrawImage(platformImage.PlatformImage, _rect, WRect.Empty, CurrentState.Alpha, CanvasImageInterpolation.Linear));
 			}
 		}
 
@@ -525,7 +546,7 @@ namespace Microsoft.Maui.Graphics.Win2D
 				endAngle += 360;
 			}
 
-			var rotation = Geometry.GetSweep(startAngle, endAngle, clockwise);
+			var rotation = GeometryUtil.GetSweep(startAngle, endAngle, clockwise);
 			var absRotation = Math.Abs(rotation);
 
 			float strokeWidth = CurrentState.StrokeSize;
@@ -534,8 +555,8 @@ namespace Microsoft.Maui.Graphics.Win2D
 			_size.Width = _rect.Width / 2;
 			_size.Height = _rect.Height / 2;
 
-			var startPoint = Geometry.EllipseAngleToPoint((float)_rect.X, (float)_rect.Y, (float)_rect.Width, (float)_rect.Height, -startAngle);
-			var endPoint = Geometry.EllipseAngleToPoint((float)_rect.X, (float)_rect.Y, (float)_rect.Width, (float)_rect.Height, -endAngle);
+			var startPoint = GeometryUtil.EllipseAngleToPoint((float)_rect.X, (float)_rect.Y, (float)_rect.Width, (float)_rect.Height, -startAngle);
+			var endPoint = GeometryUtil.EllipseAngleToPoint((float)_rect.X, (float)_rect.Y, (float)_rect.Width, (float)_rect.Height, -endAngle);
 
 			_point1.X = startPoint.X;
 			_point1.Y = startPoint.Y;

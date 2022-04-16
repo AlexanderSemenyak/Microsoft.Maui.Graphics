@@ -71,6 +71,11 @@ namespace Microsoft.Maui.Graphics
 			set { _commands.Add(canvas => canvas.StrokeDashPattern = value); }
 		}
 
+		public float StrokeDashOffset
+		{
+			set { _commands.Add(canvas => canvas.StrokeDashOffset = value); }
+		}
+
 		public Color FillColor
 		{
 			set { _commands.Add(canvas => canvas.FillColor = value); }
@@ -253,7 +258,7 @@ namespace Microsoft.Maui.Graphics
 			_commands.Add(canvas => canvas.SetFillPaint(paint, point1, point2));
 		}
 
-		public void SetFillPaint(Paint paint, RectangleF rectangle)
+		public void SetFillPaint(Paint paint, RectF rectangle)
 		{
 			_commands.Add(canvas => canvas.SetFillPaint(paint, rectangle));
 		}
